@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
@@ -7,6 +6,7 @@ import {
   Group,
   Loader,
   Modal,
+  Pagination,
   Paper,
   Select,
   SimpleGrid,
@@ -21,10 +21,8 @@ import { IconEye, IconSearch } from "@tabler/icons-react";
 
 import { enquiryService } from "./enquiry-service";
 
-import type {
-  Enquiry,
-  EnquiryStatus,
-} from "./enquiry-types";
+import type { Enquiry, EnquiryStatus } from "./enquiry-types";
+import EnquiryDetails from "./EnquiryDetails";
 
 interface EnquiryStats {
   total: number;
@@ -117,6 +115,7 @@ export default function EnquiriesPage() {
     inDiscussion: 0,
     converted: 0,
   });
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -129,8 +128,7 @@ export default function EnquiriesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [selectedEnquiry, setSelectedEnquiry] =
-    useState<Enquiry | null>(null);
+  const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -179,7 +177,7 @@ export default function EnquiriesPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch, status]);
+  }, [page, debouncedSearch, status, refreshKey]);
 
   // Fetch global statistics independently of table filters
   useEffect(() => {
@@ -235,7 +233,7 @@ export default function EnquiriesPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+}, [refreshKey]);
 
   const handleStatusFilter = (value: string | null) => {
     setStatus(value);
@@ -274,22 +272,15 @@ export default function EnquiriesPage() {
         </Table.Td>
 
         <Table.Td>
-          <Text size="sm">
-            {formatEnquiryType(enquiry.enquiryType)}
-          </Text>
+          <Text size="sm">{formatEnquiryType(enquiry.enquiryType)}</Text>
         </Table.Td>
 
         <Table.Td>
-          <Text size="sm">
-            {formatDate(enquiry.createdAt)}
-          </Text>
+          <Text size="sm">{formatDate(enquiry.createdAt)}</Text>
         </Table.Td>
 
         <Table.Td>
-          <Badge
-            color={getStatusColor(enquiry.status)}
-            variant="light"
-          >
+          <Badge color={getStatusColor(enquiry.status)} variant="light">
             {formatStatus(enquiry.status)}
           </Badge>
         </Table.Td>
@@ -455,95 +446,18 @@ export default function EnquiriesPage() {
           {/* Pagination */}
           {!loading && totalPages > 1 && (
             <Group justify="flex-end">
-              <Pagination
-                total={totalPages}
-                value={page}
-                onChange={setPage}
-              />
+              <Pagination total={totalPages} value={page} onChange={setPage} />
             </Group>
           )}
         </Stack>
       </Paper>
 
-      {/* Quick enquiry view */}
-      <Modal
+      <EnquiryDetails
         opened={selectedEnquiry !== null}
+        enquiryId={selectedEnquiry?._id ?? null}
         onClose={() => setSelectedEnquiry(null)}
-        title="Enquiry Overview"
-        centered
-        size="lg"
-      >
-        {selectedEnquiry && (
-          <Stack gap="md">
-            <Group justify="space-between">
-              <Title order={4}>
-                {selectedEnquiry.customerName}
-              </Title>
-
-              <Badge
-                color={getStatusColor(selectedEnquiry.status)}
-                variant="light"
-              >
-                {formatStatus(selectedEnquiry.status)}
-              </Badge>
-            </Group>
-
-            <Stack gap={5}>
-              <Text size="sm" fw={600}>
-                Contact Information
-              </Text>
-
-              <Text size="sm">
-                Phone: {selectedEnquiry.phone}
-              </Text>
-
-              <Text size="sm">
-                Email: {selectedEnquiry.email || "Not provided"}
-              </Text>
-
-              <Text size="sm">
-                Preferred Contact:{" "}
-                {selectedEnquiry.preferredContactMethod}
-              </Text>
-            </Stack>
-
-            <Stack gap={5}>
-              <Text size="sm" fw={600}>
-                Vehicle
-              </Text>
-
-              <Text size="sm">
-                {selectedEnquiry.vehicleSnapshot.year}{" "}
-                {selectedEnquiry.vehicleSnapshot.make}{" "}
-                {selectedEnquiry.vehicleSnapshot.model}
-              </Text>
-            </Stack>
-
-            <Stack gap={5}>
-              <Text size="sm" fw={600}>
-                Enquiry Message
-              </Text>
-
-              <Paper withBorder radius="sm" p="sm">
-                <Text size="sm">
-                  {selectedEnquiry.message}
-                </Text>
-              </Paper>
-            </Stack>
-
-            <Text size="xs" c="dimmed">
-              Received: {formatDate(selectedEnquiry.createdAt)}
-            </Text>
-
-            <Button
-              variant="default"
-              onClick={() => setSelectedEnquiry(null)}
-            >
-              Close
-            </Button>
-          </Stack>
-        )}
-      </Modal>
+        onUpdated={() => setRefreshKey((current) => current + 1)}
+      />
     </Stack>
   );
 }
