@@ -26,6 +26,24 @@ export type VehicleCondition =
   | "FOREIGN_USED"
   | "LOCALLY_USED";
 
+export type VehicleDriveType =
+  | "FWD"
+  | "RWD"
+  | "AWD"
+  | "4WD"
+  | "OTHER";
+
+export type VehicleBodyType =
+  | "SUV"
+  | "SEDAN"
+  | "HATCHBACK"
+  | "COUPE"
+  | "PICKUP"
+  | "TRUCK"
+  | "VAN"
+  | "WAGON"
+  | "OTHER";
+
 export interface VehicleImage {
   publicId: string;
   url: string;
@@ -42,11 +60,11 @@ export interface Vehicle {
   transmission: VehicleTransmission;
   fuelType: VehicleFuelType;
   engineCapacity?: string;
-  bodyType: string;
+  bodyType: VehicleBodyType;
   condition: VehicleCondition;
   exteriorColor?: string;
   interiorColor?: string;
-  driveType?: string;
+  driveType?: VehicleDriveType;
   location?: string;
   description: string;
   features: string[];
@@ -71,6 +89,13 @@ export interface VehicleListResponse {
   data: {
     vehicles: Vehicle[];
     pagination: VehiclePagination;
+  };
+}
+
+export interface VehicleDetailResponse {
+  success: boolean;
+  data: {
+    vehicle: Vehicle;
   };
 }
 

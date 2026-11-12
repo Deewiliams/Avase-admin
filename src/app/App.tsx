@@ -7,6 +7,9 @@ import AdminLayout from "../components/layout/AdminLayout";
 import ComingSoonPage from "../components/layout/ComingSoonPage";
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
 import VehiclesPage from "../features/vehicles/pages/VehiclesPage";
+import CreateVehiclePage from "../features/vehicles/pages/CreateVehiclePage";
+import VehicleDetailsPage from "../features/vehicles/pages/VehicleDetailsPage";
+import EditVehiclePage from "../features/vehicles/pages/CreateVehiclePage";
 
 function PublicRoute() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -31,6 +34,9 @@ export default function App() {
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/vehicles" element={<VehiclesPage />} />
+          <Route path="/vehicles/new" element={<CreateVehiclePage />} />
+          <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
+          <Route path="vehicles/:id/edit" element={<EditVehiclePage />} />
           <Route
             path="/vehicles/*"
             element={
