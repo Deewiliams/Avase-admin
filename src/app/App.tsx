@@ -10,6 +10,7 @@ import VehiclesPage from "../features/vehicles/pages/VehiclesPage";
 import CreateVehiclePage from "../features/vehicles/pages/CreateVehiclePage";
 import VehicleDetailsPage from "../features/vehicles/pages/VehicleDetailsPage";
 import EditVehiclePage from "../features/vehicles/pages/CreateVehiclePage";
+import EnquiriesPage from "../features/enquiries/EnquiriesPage";
 
 function PublicRoute() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/vehicles/new" element={<CreateVehiclePage />} />
           <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
           <Route path="vehicles/:id/edit" element={<EditVehiclePage />} />
+          <Route path="inquiries" element={<EnquiriesPage />} />
           <Route
             path="/vehicles/*"
             element={
