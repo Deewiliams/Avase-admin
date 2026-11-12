@@ -9,6 +9,7 @@ import AdminLayout from "../components/layout/AdminLayout";
 import ComingSoonPage from "../components/layout/ComingSoonPage";
 
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
+import VehiclesPage from "../features/vehicles/pages/VehiclesPage";
 
 function PublicRoute() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -32,7 +33,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-
+          <Route path="/vehicles" element={<VehiclesPage />} />
           <Route
             path="/vehicles/*"
             element={
