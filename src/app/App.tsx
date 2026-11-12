@@ -1,7 +1,14 @@
-import "./App.css";
+import { Navigate, Route, Routes } from "react-router-dom";
+import LoginPage from "../features/auth/pages/LoginPage";
 
-const App = () => {
-  return <div>App</div>;
-};
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
 
-export default App;
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
