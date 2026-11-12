@@ -4,6 +4,7 @@ import type {
   VehicleListParams,
   VehicleListResponse,
   VehicleDetailResponse,
+  VehicleStatus,
 } from "./vehicle-types";
 
 export const vehicleService = {
@@ -43,4 +44,28 @@ export const vehicleService = {
 
     return data;
   },
+  // Update vehicle status
+async updateVehicleStatus(id: string, status: VehicleStatus) {
+  const { data } = await api.patch(`/vehicles/${id}/status`, {
+    status,
+  });
+
+  return data;
+},
+
+// Publish or unpublish vehicle
+async updateVehiclePublication(id: string, isPublished: boolean) {
+  const { data } = await api.patch(`/vehicles/${id}/publication`, {
+    isPublished,
+  });
+
+  return data;
+},
+
+// Archive vehicle
+async archiveVehicle(id: string) {
+  const { data } = await api.delete(`/vehicles/${id}`);
+
+  return data;
+},
 };

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
@@ -21,6 +20,8 @@ import {
 
 import {
   IconAlertCircle,
+  IconArchive,
+  IconCheck,
   IconArrowLeft,
   IconCalendar,
   IconCar,
@@ -29,7 +30,7 @@ import {
   IconEngine,
   IconEye,
   IconEyeOff,
-//   IconFuel,
+  //   IconFuel,
   IconGauge,
   IconMapPin,
   IconRefresh,
@@ -39,7 +40,7 @@ import {
 
 import { useNavigate, useParams } from "react-router-dom";
 import { vehicleService } from "../vehicle-service";
-import type { Vehicle } from "../vehicle-types";
+import type { Vehicle, VehicleStatus } from "../vehicle-types";
 
 const formatLabel = (value?: string) => {
   if (!value) return "Not specified";
@@ -77,19 +78,10 @@ interface SpecificationProps {
   value: string;
 }
 
-function Specification({
-  icon,
-  label,
-  value,
-}: SpecificationProps) {
+function Specification({ icon, label, value }: SpecificationProps) {
   return (
     <Group align="center" gap="sm" wrap="nowrap">
-      <Center
-        w={40}
-        h={40}
-        bg="gray.0"
-        style={{ borderRadius: 8 }}
-      >
+      <Center w={40} h={40} bg="gray.0" style={{ borderRadius: 8 }}>
         {icon}
       </Center>
 
@@ -114,6 +106,9 @@ export default function VehicleDetailsPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const fetchVehicle = async () => {
     if (!id) {
@@ -138,10 +133,114 @@ export default function VehicleDetailsPage() {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Failed to load vehicle details."
+          "Failed to load vehicle details.",
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (status: VehicleStatus) => {
+    if (!id || !vehicle || isActionLoading) return;
+
+    const label = status.toLowerCase().replaceAll("_", " ");
+    const confirmed = window.confirm(
+      `Are you sure you want to change this vehicle's status to ${label}?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsActionLoading(true);
+      setActionError(null);
+      setActionSuccess(null);
+
+      await vehicleService.updateVehicleStatus(id, status);
+      await fetchVehicle();
+
+      setActionSuccess(`Vehicle status updated to ${label}.`);
+    } catch (err: any) {
+      setActionError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update vehicle status.",
+      );
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handlePublicationToggle = async () => {
+    if (!id || !vehicle || isActionLoading) return;
+
+    if (!vehicle.isPublished && vehicle.status !== "AVAILABLE") {
+      setActionError("Only available vehicles can be published.");
+      return;
+    }
+
+    if (!vehicle.isPublished && !vehicle.images?.length) {
+      setActionError("Add at least one vehicle image before publishing.");
+      return;
+    }
+
+    const nextValue = !vehicle.isPublished;
+    const confirmed = window.confirm(
+      `Are you sure you want to ${nextValue ? "publish" : "unpublish"} this vehicle?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsActionLoading(true);
+      setActionError(null);
+      setActionSuccess(null);
+
+      await vehicleService.updateVehiclePublication(id, nextValue);
+      await fetchVehicle();
+
+      setActionSuccess(
+        nextValue
+          ? "Vehicle published successfully."
+          : "Vehicle unpublished successfully.",
+      );
+    } catch (err: any) {
+      setActionError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update vehicle publication.",
+      );
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!id || !vehicle || isActionLoading) return;
+
+    const confirmed = window.confirm(
+      `Archive ${vehicle.year} ${vehicle.make} ${vehicle.model}? This will remove it from public listings.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsActionLoading(true);
+      setActionError(null);
+      setActionSuccess(null);
+
+      await vehicleService.archiveVehicle(id);
+      navigate("/vehicles", {
+        replace: true,
+        state: { successMessage: "Vehicle archived successfully." },
+      });
+    } catch (err: any) {
+      setActionError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to archive vehicle.",
+      );
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -227,13 +326,187 @@ export default function VehicleDetailsPage() {
         <Button
           leftSection={<IconEdit size={16} />}
           color="dark"
-          onClick={() =>
-            navigate(`/vehicles/${vehicle._id}/edit`)
-          }
+          onClick={() => navigate(`/vehicles/${vehicle._id}/edit`)}
         >
           Edit vehicle
         </Button>
       </Group>
+
+      {/* Vehicle Status and Publication Management */}
+      <Paper withBorder p="lg" radius="lg">
+        <Stack gap="md">
+          <Group justify="space-between" align="center">
+            <Box>
+              <Title order={4}>Vehicle management</Title>
+              <Text size="sm" c="dimmed" mt={4}>
+                Manage availability, public visibility and inventory status.
+              </Text>
+            </Box>
+            <Badge
+              color={getStatusColor(vehicle.status)}
+              variant="light"
+              size="lg"
+            >
+              {formatLabel(vehicle.status)}
+            </Badge>
+          </Group>
+
+          {actionError && (
+            <Alert
+              color="red"
+              icon={<IconAlertCircle size={16} />}
+              title="Action unsuccessful"
+              withCloseButton
+              onClose={() => setActionError(null)}
+            >
+              {actionError}
+            </Alert>
+          )}
+
+          {actionSuccess && (
+            <Alert
+              color="green"
+              icon={<IconCheck size={16} />}
+              title="Success"
+              withCloseButton
+              onClose={() => setActionSuccess(null)}
+            >
+              {actionSuccess}
+            </Alert>
+          )}
+
+          <Divider />
+
+          <Box>
+            <Text size="sm" fw={600} mb="xs">
+              Availability status
+            </Text>
+            <Group gap="xs" wrap="wrap">
+              <Button
+                size="sm"
+                variant={vehicle.status === "DRAFT" ? "filled" : "light"}
+                color="gray"
+                loading={isActionLoading}
+                disabled={
+                  vehicle.status === "DRAFT" || vehicle.status === "ARCHIVED"
+                }
+                onClick={() => handleStatusUpdate("DRAFT")}
+              >
+                Draft
+              </Button>
+              <Button
+                size="sm"
+                variant={vehicle.status === "AVAILABLE" ? "filled" : "light"}
+                color="green"
+                loading={isActionLoading}
+                disabled={
+                  vehicle.status === "AVAILABLE" ||
+                  vehicle.status === "ARCHIVED"
+                }
+                onClick={() => handleStatusUpdate("AVAILABLE")}
+              >
+                Available
+              </Button>
+              <Button
+                size="sm"
+                variant={vehicle.status === "RESERVED" ? "filled" : "light"}
+                color="orange"
+                loading={isActionLoading}
+                disabled={
+                  vehicle.status === "RESERVED" || vehicle.status === "ARCHIVED"
+                }
+                onClick={() => handleStatusUpdate("RESERVED")}
+              >
+                Reserved
+              </Button>
+              <Button
+                size="sm"
+                variant={vehicle.status === "SOLD" ? "filled" : "light"}
+                color="red"
+                loading={isActionLoading}
+                disabled={
+                  vehicle.status === "SOLD" || vehicle.status === "ARCHIVED"
+                }
+                onClick={() => handleStatusUpdate("SOLD")}
+              >
+                Sold
+              </Button>
+            </Group>
+          </Box>
+
+          <Divider />
+
+          <Group justify="space-between" align="center">
+            <Box style={{ flex: 1 }}>
+              <Text size="sm" fw={600}>
+                Public visibility
+              </Text>
+              <Text size="xs" c="dimmed" mt={3}>
+                {vehicle.isPublished
+                  ? "This vehicle is marked as published."
+                  : "This vehicle is not currently published."}
+                {vehicle.status !== "AVAILABLE"
+                  ? " Only vehicles with Available status appear in public listings."
+                  : ""}
+              </Text>
+            </Box>
+            <Button
+              size="sm"
+              color={vehicle.isPublished ? "gray" : "dark"}
+              variant={vehicle.isPublished ? "light" : "filled"}
+              leftSection={
+                vehicle.isPublished ? (
+                  <IconEyeOff size={16} />
+                ) : (
+                  <IconEye size={16} />
+                )
+              }
+              loading={isActionLoading}
+              disabled={
+                vehicle.status === "ARCHIVED" ||
+                (!vehicle.isPublished &&
+                  (vehicle.status !== "AVAILABLE" || !vehicle.images?.length))
+              }
+              onClick={handlePublicationToggle}
+            >
+              {vehicle.isPublished ? "Unpublish" : "Publish"}
+            </Button>
+          </Group>
+
+          {!vehicle.isPublished &&
+            vehicle.status === "AVAILABLE" &&
+            !vehicle.images?.length && (
+              <Text size="xs" c="orange">
+                Add at least one image before publishing this vehicle.
+              </Text>
+            )}
+
+          <Divider />
+
+          <Group justify="space-between" align="center">
+            <Box style={{ flex: 1 }}>
+              <Text size="sm" fw={600} c="red">
+                Archive vehicle
+              </Text>
+              <Text size="xs" c="dimmed" mt={3}>
+                Archived vehicles are removed from public listings and cannot be
+                edited.
+              </Text>
+            </Box>
+            <Button
+              size="sm"
+              color="red"
+              variant="light"
+              leftSection={<IconArchive size={16} />}
+              loading={isActionLoading}
+              disabled={vehicle.status === "ARCHIVED"}
+              onClick={handleArchive}
+            >
+              Archive
+            </Button>
+          </Group>
+        </Stack>
+      </Paper>
 
       {/* Main Vehicle Information */}
       <Grid gutter="xl">
@@ -347,9 +620,11 @@ export default function VehicleDetailsPage() {
                     color={vehicle.isPublished ? "green" : "gray"}
                     variant="light"
                     leftSection={
-                      vehicle.isPublished
-                        ? <IconEye size={12} />
-                        : <IconEyeOff size={12} />
+                      vehicle.isPublished ? (
+                        <IconEye size={12} />
+                      ) : (
+                        <IconEyeOff size={12} />
+                      )
                     }
                   >
                     {vehicle.isPublished ? "Published" : "Unpublished"}
@@ -392,14 +667,11 @@ export default function VehicleDetailsPage() {
                 </Text>
 
                 <Text size="sm" fw={500}>
-                  {new Date(vehicle.createdAt).toLocaleDateString(
-                    "en-GB",
-                    {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )}
+                  {new Date(vehicle.createdAt).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </Text>
               </Stack>
             </Stack>
@@ -491,12 +763,7 @@ export default function VehicleDetailsPage() {
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
             {vehicle.features.map((feature, index) => (
               <Group key={`${feature}-${index}`} gap="xs">
-                <Center
-                  w={24}
-                  h={24}
-                  bg="gray.1"
-                  style={{ borderRadius: 50 }}
-                >
+                <Center w={24} h={24} bg="gray.1" style={{ borderRadius: 50 }}>
                   <IconStar size={13} color="#B18C52" />
                 </Center>
 
