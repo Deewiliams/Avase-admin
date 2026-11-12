@@ -3,20 +3,23 @@ import type { LoginCredentials, LoginResponse, MeResponse } from "./auth-types";
 
 export const authService = {
   async login(credentials: LoginCredentials) {
-    const response = await api.post<LoginResponse>("/auth/login", credentials);
+    const { data } = await api.post<LoginResponse>("/auth/login", credentials);
 
-    return response.data;
+    return data;
   },
 
   async getMe() {
-    const response = await api.get<MeResponse>("/auth/me");
+    const { data } = await api.get<MeResponse>("/auth/me");
 
-    return response.data;
+    return data;
   },
 
-  async changePassword(data: { currentPassword: string; newPassword: string }) {
-    const response = await api.patch("/auth/change-password", data);
+  async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    const { data } = await api.post("/auth/change-password", payload);
 
-    return response.data;
+    return data;
   },
 };

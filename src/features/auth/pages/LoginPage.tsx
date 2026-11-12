@@ -18,10 +18,11 @@ import { useForm } from "@mantine/form";
 import { IconCar, IconLock, IconMail } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
+import { useAuth } from "../AuthContext";
 
-import { authService } from "../auth-service";
 
 export default function LoginPage() {
+    const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -41,39 +42,31 @@ export default function LoginPage() {
   });
 
   const handleLogin = async (values: typeof form.values) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const response = await authService.login(values);
+    await login(values);
 
-      if (!response.success) {
-        throw new Error(response.message || "Login failed");
-      }
+    notifications.show({
+      title: "Welcome to AVASE",
+      message: "You have successfully signed in.",
+      color: "green",
+    });
 
-      // Assumes loginUser returns { token, user }
-      localStorage.setItem("avase_token", response.data.token);
-      localStorage.setItem("avase_user", JSON.stringify(response.data.user));
-
-      notifications.show({
-        title: "Welcome to AVASE",
-        message: "You have successfully signed in.",
-        color: "green",
-      });
-
-      navigate("/dashboard", { replace: true });
-    } catch (error: any) {
-      notifications.show({
-        title: "Authentication failed",
-        message:
-          error.response?.data?.message ||
-          error.message ||
-          "Unable to sign in.",
-        color: "red",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/dashboard", { replace: true });
+  } catch (error: any) {
+    notifications.show({
+      title: "Authentication failed",
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to sign in.",
+      color: "red",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box

@@ -1,11 +1,10 @@
+export type AdminRole = "SUPER_ADMIN" | "ADMIN";
 
 export interface AdminUser {
-  _id: string;
+  id: string;
   name: string;
   email: string;
-  role: "SUPER_ADMIN" | "ADMIN";
-  isActive: boolean;
-  lastLogin?: string | null;
+  role: AdminRole;
 }
 
 export interface LoginCredentials {
@@ -27,10 +26,4 @@ export interface MeResponse {
   data: {
     user: AdminUser;
   };
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
 }
