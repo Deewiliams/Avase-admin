@@ -1,13 +1,10 @@
 import { Center, Loader } from "@mantine/core";
 import { Navigate, Route, Routes } from "react-router-dom";
-
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProtectedRoute from "../features/auth/ProtectedRoute";
 import { useAuth } from "../features/auth/AuthContext";
-
 import AdminLayout from "../components/layout/AdminLayout";
 import ComingSoonPage from "../components/layout/ComingSoonPage";
-
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
 import VehiclesPage from "../features/vehicles/pages/VehiclesPage";
 
