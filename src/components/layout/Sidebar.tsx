@@ -6,7 +6,9 @@ import {
   IconSettings,
 } from "@tabler/icons-react";
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
-import { Box, NavLink, Stack, Text } from "@mantine/core";
+import { Box, Group, Image, NavLink, Stack, Text } from "@mantine/core";
+import AvaseLogo from "../../assets/avase.png";
+
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -50,12 +52,40 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
   return (
     <Stack h="100%" gap="xl">
-      <Box>
-        <Text fw={800} size="xl" c="white" style={{ letterSpacing: "3px" }}>
-          AVASE
-        </Text>
+      <Box w="100%" maw="100%">
+        <Group gap="sm" wrap="nowrap" align="center">
+          <Image
+            src={AvaseLogo}
+            alt="AVASE logo"
+            w="clamp(26px, 3vw, 34px)"
+            h="clamp(26px, 3vw, 34px)"
+            fit="contain"
+            style={{ flex: "0 0 auto" }}
+          />
+          <Text
+            fw={800}
+            c="white"
+            style={{
+              minWidth: 0,
+              fontSize: "clamp(1.125rem, 3vw, 1.5rem)",
+              letterSpacing: "clamp(1.5px, 0.35vw, 3px)",
+              lineHeight: 1.1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            AVASE
+          </Text>
+        </Group>
 
-        <Text size="xs" c="dimmed" mt={4} style={{ letterSpacing: "1.5px" }}>
+        <Text
+          size="xs"
+          c="dimmed"
+          mt={6}
+          style={{
+            letterSpacing: "clamp(1px, 0.2vw, 1.5px)",
+            lineHeight: 1.3,
+          }}
+        >
           ADMINISTRATION
         </Text>
       </Box>
