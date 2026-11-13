@@ -10,6 +10,7 @@ export default function AdminLayout() {
 
   return (
     <AppShell
+      layout="alt"
       header={{ height: 76 }}
       navbar={{
         width: 260,
