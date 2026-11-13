@@ -1,4 +1,3 @@
-
 import {
   Badge,
   Button,
@@ -21,36 +20,70 @@ import {
 } from "@tabler/icons-react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-
-const statistics = [
-  {
-    label: "Total Vehicles",
-    value: "—",
-    description: "Vehicle inventory",
-    icon: IconCar,
-  },
-  {
-    label: "Available Vehicles",
-    value: "—",
-    description: "Currently listed",
-    icon: IconTrendingUp,
-  },
-  {
-    label: "Client Inquiries",
-    value: "—",
-    description: "Requests received",
-    icon: IconMessageCircle,
-  },
-  {
-    label: "Registered Admins",
-    value: "—",
-    description: "System administrators",
-    icon: IconUsers,
-  },
-];
+import { dashboardService } from "./dashboard-service";
+import type { DashboardOverview } from "./dashboard-types";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardOverview = async () => {
+      try {
+        setIsLoading(true);
+
+        const response = await dashboardService.getDashboardOverview();
+
+        if (response.success) {
+          setOverview(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard overview:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardOverview();
+  }, []);
+
+  const statistics = [
+    {
+      label: "Total Vehicles",
+      value: isLoading
+        ? "..."
+        : (overview?.totalVehicles ?? 0).toLocaleString(),
+      description: "Vehicle inventory",
+      icon: IconCar,
+    },
+    {
+      label: "Available Vehicles",
+      value: isLoading
+        ? "..."
+        : (overview?.availableVehicles ?? 0).toLocaleString(),
+      description: "Currently listed",
+      icon: IconTrendingUp,
+    },
+    {
+      label: "Client Inquiries",
+      value: isLoading
+        ? "..."
+        : (overview?.clientInquiries ?? 0).toLocaleString(),
+      description: "Requests received",
+      icon: IconMessageCircle,
+    },
+    {
+      label: "Registered Admins",
+      value: isLoading
+        ? "..."
+        : (overview?.registeredAdmins ?? 0).toLocaleString(),
+      description: "System administrators",
+      icon: IconUsers,
+    },
+  ];
 
   return (
     <Stack gap="xl">
@@ -70,12 +103,7 @@ export default function DashboardPage() {
           </Text>
         </Stack>
 
-        <Badge
-          color="green"
-          variant="light"
-          size="lg"
-          radius="sm"
-        >
+        <Badge color="green" variant="light" size="lg" radius="sm">
           Admin Portal
         </Badge>
       </Group>
@@ -111,12 +139,7 @@ export default function DashboardPage() {
                   </Text>
                 </Stack>
 
-                <ThemeIcon
-                  size={44}
-                  radius="md"
-                  variant="light"
-                  color="gold"
-                >
+                <ThemeIcon size={44} radius="md" variant="light" color="gold">
                   <Icon size={22} stroke={1.6} />
                 </ThemeIcon>
               </Group>
@@ -126,7 +149,7 @@ export default function DashboardPage() {
       </SimpleGrid>
 
       {/* Main dashboard content */}
-      <Grid gutter="md">
+      <Grid>
         <Grid.Col span={{ base: 12, md: 8 }}>
           <Paper
             p="lg"
@@ -161,12 +184,7 @@ export default function DashboardPage() {
             </Group>
 
             <Stack align="center" justify="center" py={45} gap="sm">
-              <ThemeIcon
-                size={58}
-                radius="xl"
-                variant="light"
-                color="gray"
-              >
+              <ThemeIcon size={58} radius="xl" variant="light" color="gray">
                 <IconCar size={28} />
               </ThemeIcon>
 
@@ -175,8 +193,8 @@ export default function DashboardPage() {
               </Text>
 
               <Text size="sm" c="dimmed" ta="center" maw={340}>
-                Once vehicles are added, this section will provide
-                a quick overview of your vehicle listings.
+                Once vehicles are added, this section will provide a quick
+                overview of your vehicle listings.
               </Text>
 
               <Button
@@ -249,7 +267,7 @@ export default function DashboardPage() {
               </Button>
             </Stack>
 
-            <Paper
+            {/* <Paper
               mt="xl"
               p="md"
               radius="md"
@@ -264,48 +282,10 @@ export default function DashboardPage() {
               </Text>
 
               <Text size="xs" c="dimmed" mt={4}>
-                Delivering a professional vehicle sourcing experience
-                to every client.
+                Delivering a professional vehicle sourcing experience to every
+                client.
               </Text>
-            </Paper>
-          </Paper>
-        </Grid.Col>
-
-        <Grid.Col span={12}>
-          <Paper
-            p="lg"
-            radius="lg"
-            withBorder
-            style={{
-              borderColor: "#E9ECEF",
-              backgroundColor: "#FFFFFF",
-            }}
-          >
-            <Group justify="space-between" mb="md">
-              <Stack gap={4}>
-                <Title order={4} c="#18242C">
-                  Recent Activity
-                </Title>
-                <Text size="xs" c="dimmed">
-                  Latest changes and actions across your portal.
-                </Text>
-              </Stack>
-
-              <Badge variant="light" color="gray">
-                Activity feed
-              </Badge>
-            </Group>
-
-            <Stack align="center" py="xl" gap="xs">
-              <Text size="sm" fw={500} c="#202A30">
-                No recent activity
-              </Text>
-
-              <Text size="xs" c="dimmed" ta="center">
-                Administrative activity will appear here as you
-                begin managing the platform.
-              </Text>
-            </Stack>
+            </Paper> */}
           </Paper>
         </Grid.Col>
       </Grid>
